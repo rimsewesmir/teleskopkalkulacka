@@ -2,10 +2,140 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teleskop Kalkulačka</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    .results {
+      margin-top: 20px;
+      padding: 10px;
+      background: #e0ffe0;
+      border-radius: 8px;
+    }
+    .preview {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .circle-mask {
+      width: 300px;
+      height: 300px;
+      margin: auto;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 0 15px #000;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .circle-mask img {
+      transition: transform 0.3s ease;
+      max-width: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>Moje teleskopová kalkulačka</h1>
-  <p>Stránka se připravuje...</p>
+  <div class="container">
+    <h1>Teleskop Kalkulačka</h1>
+
+    <label>Typ dalekohledu:</label>
+    <select id="telescopeType">
+      <option value="refractor">Refraktor</option>
+      <option value="reflector">Reflektor</option>
+    </select>
+
+    <label>Průměr objektivu (mm):</label>
+    <input type="number" id="aperture" placeholder="např. 80">
+
+    <label>Ohnisková vzdálenost dalekohledu (mm):</label>
+    <input type="number" id="focalLengthScope" placeholder="např. 900">
+
+    <label>Ohnisková vzdálenost okuláru (mm):</label>
+    <input type="number" id="focalLengthEyepiece" placeholder="např. 25">
+
+    <label>Zorné pole okuláru (°):</label>
+    <input type="number" id="eyepieceFOV" placeholder="např. 50">
+
+    <label>Simulovaný objekt:</label>
+    <select id="objectSelect">
+      <option value="moon">Měsíc</option>
+      <option value="pleiades">Plejády</option>
+    </select>
+
+    <button onclick="calculate()">Spočítat</button>
+
+    <div class="results" id="results" style="display:none">
+      <h3>Výsledky:</h3>
+      <p><strong>Zvětšení:</strong> <span id="magnification"></span>x</p>
+      <p><strong>Zorné pole:</strong> <span id="fieldOfView"></span>°</p>
+      <p><strong>Rozlišovací schopnost:</strong> <span id="resolution"></span> ″ (obloukových vteřin)</p>
+      <p><strong>Mezní magnituda:</strong> <span id="limitingMagnitude"></span></p>
+    </div>
+
+    <div class="preview" id="preview" style="display:none">
+      <h3>Simulovaný pohled:</h3>
+      <div class="circle-mask">
+        <img id="previewImage" src="moon.jpg" alt="Simulovaný pohled">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculate() {
+      const aperture = parseFloat(document.getElementById('aperture').value);
+      const focalScope = parseFloat(document.getElementById('focalLengthScope').value);
+      const focalEyepiece = parseFloat(document.getElementById('focalLengthEyepiece').value);
+      const fovEyepiece = parseFloat(document.getElementById('eyepieceFOV').value);
+      const selectedObject = document.getElementById('objectSelect').value;
+
+      if (!aperture || !focalScope || !focalEyepiece || !fovEyepiece) {
+        alert("Vyplň prosím všechna pole.");
+        return;
+      }
+
+      const magnification = (focalScope / focalEyepiece).toFixed(1);
+      const fieldOfView = (fovEyepiece / magnification).toFixed(2);
+      const resolution = (116 / aperture).toFixed(2);
+      const limitingMagnitude = (2 + 5 * Math.log10(aperture)).toFixed(1);
+
+      document.getElementById('magnification').textContent = magnification;
+      document.getElementById('fieldOfView').textContent = fieldOfView;
+      document.getElementById('resolution').textContent = resolution;
+      document.getElementById('limitingMagnitude').textContent = limitingMagnitude;
+      document.getElementById('results').style.display = 'block';
+
+      const previewImage = document.getElementById('previewImage');
+      previewImage.src = selectedObject === 'moon' ? 'moon.jpg' : 'pleiades.jpg';
+
+      const actualObjectSize = selectedObject === 'moon' ? 0.5 : 2.0; // v stupních
+      const fov = parseFloat(fieldOfView);
+      const scale = actualObjectSize / fov;
+
+      // škálování obrázku tak, aby odpovídal zornému poli
+      previewImage.style.transform = `scale(${scale})`;
+      document.getElementById('preview').style.display = 'block';
+    }
+  </script>
 </body>
 </html>
